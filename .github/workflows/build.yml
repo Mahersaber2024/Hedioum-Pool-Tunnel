@@ -1,0 +1,35 @@
+name: Build Hedioum Binary
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:  # این خط رو اضافه کنید تا بتوانید به صورت دستی اجرا کنید
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build for Linux AMD64
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o hedioum-tunnel-linux-amd64 ./cmd/hedioum
+
+      - name: Build for Linux ARM64
+        run: |
+          GOOS=linux GOARCH=arm64 go build -o hedioum-tunnel-linux-arm64 ./cmd/hedioum
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hedioum-binaries
+          path: |
+            hedioum-tunnel-linux-amd64
+            hedioum-tunnel-linux-arm64
