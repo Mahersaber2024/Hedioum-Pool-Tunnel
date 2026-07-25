@@ -25,6 +25,7 @@ type ForeignNode struct {
 	TargetIP            string `json:"target_ip"`
 	TargetPort          int    `json:"target_port"`
 	LocalSocksPort      int    `json:"local_socks_port"`
+	Socks5Bind         string `json:"socks5_bind"`
 	MinConnections      int    `json:"min_connections"`       // Establishes the baseline warm-up pool size
 	MaxConnections      int    `json:"max_connections"`       // Dynamically customizes pool sizing per server
 	BandwidthLimitMbps  int    `json:"bandwidth_limit_mbps"`  // Target speed (Mbps) per physical connection before scale-up
