@@ -100,23 +100,27 @@ func StartIranHub(cfg *config.AppConfig) {
 // startLocalSocksListener boots up a TCP server listening exclusively on 127.0.0.1.
 // It acts as the local bridge for X-UI's outbound routing.
 func startLocalSocksListener(node config.ForeignNode, hubManager *pool.HubManager) {
-	listenAddr := fmt.Sprintf("127.0.0.1:%d", node.LocalSocksPort)
-	listener, err := net.Listen("tcp", listenAddr)
-	if err != nil {
-		color.Red("[x] CRITICAL: Failed to bind SOCKS5 listener for [%s] on %s: %v", node.Alias, listenAddr, err)
-		return
-	}
+    // اگر Socks5Bind تنظیم شده بود از اون استفاده کن، وگرنه پیش‌فرض 127.0.0.1
+    bindAddr := node.Socks5Bind
+    if bindAddr == "" {
+        bindAddr = fmt.Sprintf("127.0.0.1:%d", node.LocalSocksPort)
+    }
+    
+    listener, err := net.Listen("tcp", bindAddr)
+    if err != nil {
+        color.Red("[x] CRITICAL: Failed to bind SOCKS5 listener for [%s] on %s: %v", node.Alias, bindAddr, err)
+        return
+    }
 
-	color.Green("[✓] SOCKS5 Ingress active for [%s] on %s", node.Alias, listenAddr)
+    color.Green("[✓] SOCKS5 Ingress active for [%s] on %s", node.Alias, bindAddr)
 
-	for {
-		clientConn, err := listener.Accept()
-		if err != nil {
-			continue // Silently ignore transient socket accept errors
-		}
-
-		go handleClientTraffic(clientConn, node.Alias, hubManager)
-	}
+    for {
+        clientConn, err := listener.Accept()
+        if err != nil {
+            continue
+        }
+        go handleClientTraffic(clientConn, node.Alias, hubManager)
+    }
 }
 
 // handleClientTraffic processes the local SOCKS5 handshake, extracts the target metadata,
